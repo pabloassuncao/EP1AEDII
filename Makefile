@@ -22,8 +22,6 @@ $(TARGET_MATRIX): $(OBJS_MATRIX)
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-	clean
-
 clean:
 	rm -f $(OBJS_LIST) $(OBJS_MATRIX)
 

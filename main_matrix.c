@@ -204,7 +204,7 @@ void writeResults(SearchResult **searchResult, Consults *consults) {
   FILE *file = fopen("saida.txt", "w");
 
   for(int i = 0; i < consults->consultsSize; i++) {
-    fprintf(file, "%.2f\n", ((double)searchResult[i]->searchArray[consults->consultsArray[i].center2].weight)/100);
+    fprintf(file, "%.1f\n", ((double)searchResult[i]->searchArray[consults->consultsArray[i].center2].weight)/100);
   }
 
   fclose(file);

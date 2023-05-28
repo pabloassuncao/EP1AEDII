@@ -1,14 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-
-typedef int Weight; // Weight pode assumir outro tipo de acordo com a necessidade
-
-typedef struct matrixGraph {
-	int nodes; // É o número de vértices
-	int links; // É o número de arestas
-	Weight** nodeMat; // Caso não tenha peso na aresta será um bool
-} MatrixGraph;
+#include "grafo_matrizadj.h"
 
 void deleteMatrixGraph (MatrixGraph *g) {
 	if(!g) return;
