@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "grafo_matrizadj.h"
+// #include "grafo_matrizadj.h"
+#include "grafo_listaadj.h"
 
 typedef struct {
   int center1;
@@ -41,18 +42,18 @@ void getIndexFromBiggerMin(SearchNode* array, int size, int* index) {
 
 void printConsults(Consults *consults) {
   for(int i = 0; i < consults->consultsSize; i++) {
-    printf("Consult %d: C1-%d, C2-%d, Height-%.2f\n", i+1, consults->consultsArray[i].center1+1, consults->consultsArray[i].center2+1, ((double)consults->consultsArray[i].weight)/100);
+    printf("Consult %d: C1-%d, C2-%d, Height-%.1f\n", i+1, consults->consultsArray[i].center1, consults->consultsArray[i].center2, ((double)consults->consultsArray[i].weight)/100);
   }
 }
 
 void printSearchResults(SearchResult* results) {
-  for(int i = 0; i < results->size; i++) {
-    printf("Center %d: Ant - %d, Weight - %.2f\n", results->searchArray[i].node+1, results->searchArray[i].ant+1, ((double)results->searchArray[i].weight)/100);
+  for(int i = 0; i <= results->size; i++) {
+    printf("Center %d: Ant - %d, Weight - %.1f\n", results->searchArray[i].node, results->searchArray[i].ant, ((double)results->searchArray[i].weight)/100);
   }
 }
 
 void treatSearchResults(SearchResult* resToTreat) {
-  for(int i = 0; i < resToTreat->size; i++) {
+  for(int i = 0; i <= resToTreat->size; i++) {
     if(resToTreat->searchArray[i].weight >= 450) resToTreat->searchArray[i].weight = 450;
     else if(resToTreat->searchArray[i].weight >= 400) resToTreat->searchArray[i].weight = 400;
     else if(resToTreat->searchArray[i].weight >= 350) resToTreat->searchArray[i].weight = 350;
@@ -70,7 +71,7 @@ void deleteSearchResults(SearchResult** results, int size) {
   free(results);
 }
 
-MatrixGraph* readFile(char* path, Consults *consults) {
+Graph* readFile(char* path, Consults *consults) {
   // Open the file
   printf("Opening file...\n");
   printf("Path: %s\n", path);
@@ -99,7 +100,7 @@ MatrixGraph* readFile(char* path, Consults *consults) {
   // printf("links: %d\n", links);
   printf("consultsSize: %d\n", consultsSize);
 
-  MatrixGraph* g = createMatrixGraph(centers);
+  Graph* g = createGraph(centers);
   
   // Create the graph
   for(int i = 0; i < links; i++) {
@@ -108,15 +109,12 @@ MatrixGraph* readFile(char* path, Consults *consults) {
 
     fscanf(file, "%d %d %f", &center1, &center2, &weight);
 
-    if(!center1 || !center2 || !weight) {
+    if((center1 != 0 && !center1) || (center2 != 0 && !center2) || !weight) {
       printf("Error reading graph links\n");
       return NULL;
     }
 
-    center1--;
-    center2--;
-
-    if(center1 >= centers || center2 >= centers) {
+    if(center1 > centers || center2 > centers) {
       printf("Centro inválido\n");
       return NULL;
     }
@@ -126,12 +124,12 @@ MatrixGraph* readFile(char* path, Consults *consults) {
       return NULL;
     }
 
-    g->nodeMat[center1][center2] = (int)(weight * 100);
-    g->nodeMat[center2][center1] = (int)(weight * 100);
+    printf("Adicionando link %d-%d com peso %.1f\n", center1, center2, weight);
 
-    // printf("center1: %d\n", center1);
-    // printf("center2: %d\n", center2);
-    // printf("weight: %f\n", weight);
+    addLink(g, center1, center2, (int)(weight * 100));
+    addLink(g, center2, center1, (int)(weight * 100));
+
+    printf("Link adicionado\n");
   }
 
   // Create the consults
@@ -140,34 +138,36 @@ MatrixGraph* readFile(char* path, Consults *consults) {
 
     fscanf(file, "%d %d", &center1, &center2);
 
-    if(!center1 || !center2) {
-      printf("Error reading consults or center equals a 0\n");
+    if((center1 != 0 && !center1) || (center2 != 0 && !center2)) {
+      printf("Error reading consults\n");
       return NULL;
     }
-
-    center1--;
-    center2--;
 
     if(center1 > centers || center2 > centers || center1 < 0 || center2 < 0) {
-      printf("invalid Center, greater than number of centers or lower than 1\n");
+      printf("invalid Center, greater than number of centers or lower than 0\n");
       return NULL;
     }
+
+    printf("Adicionando consulta %d: C1-%d, C2-%d\n", i+1, center1, center2);
 
     consults->consultsArray[i].center1 = center1;
     consults->consultsArray[i].center2 = center2;
+
+    printf("Consulta adicionada\n");
   }
 
+  printf("File read\n");
   fclose(file);
   return g;
 }
 
-SearchResult* makeConsult(MatrixGraph *g, Consult consult) {
+SearchResult* makeConsult(Graph *g, Consult consult) {
   SearchResult *searchResult = (SearchResult*) malloc(sizeof(SearchResult));
-  searchResult->searchArray = (SearchNode*) malloc(sizeof(SearchNode) * g->nodes);
+  searchResult->searchArray = (SearchNode*) malloc(sizeof(SearchNode) * (g->nodes+1));
   searchResult->source = consult.center1;
   searchResult->size = g->nodes;
 
-  for(int i = 0; i < g->nodes; i++) {
+  for(int i = 0; i <= g->nodes; i++) {
     searchResult->searchArray[i].node = i;
     searchResult->searchArray[i].ant = -1;
     searchResult->searchArray[i].weight = -1;
@@ -177,23 +177,32 @@ SearchResult* makeConsult(MatrixGraph *g, Consult consult) {
   searchResult->searchArray[consult.center1].weight = INT_MAX;
   searchResult->searchArray[consult.center1].open = false;
 
-  printf("Consulting...\n");
-
   int i = consult.center1;
+  int edges = getNumberOfEdges(g, i);
 
-  for(int z = 0; z < g->nodes - 1; z++) {
-    for(int j = 0; j < g->nodes; j++) {
-      int min = searchResult->searchArray[i].weight < g->nodeMat[i][j] ? searchResult->searchArray[i].weight : g->nodeMat[i][j];
-      if(searchResult->searchArray[j].open && searchResult->searchArray[i].node != j && min > searchResult->searchArray[j].weight) {
-        searchResult->searchArray[j].weight = min;
-        searchResult->searchArray[j].ant = searchResult->searchArray[i].node;
+  printf("Consulting...\n");
+  for(int z = 0; z <= g->nodes - 1; z++) {
+    int linkDest;
+    int linkWeight;
+    for(int j = 0; j < edges; j++) {
+      getLinkDestAndWeight(g, i, j, &linkDest, &linkWeight);
+      int min = searchResult->searchArray[i].weight < linkWeight ? searchResult->searchArray[i].weight : linkWeight;
+      if(searchResult->searchArray[linkDest].open 
+        && searchResult->searchArray[i].node != linkDest 
+        && min > searchResult->searchArray[linkDest].weight) {
+        searchResult->searchArray[linkDest].weight = min;
+        searchResult->searchArray[linkDest].ant = searchResult->searchArray[i].node;
       }
     }
     searchResult->searchArray[i].open = false;
     getIndexFromBiggerMin(searchResult->searchArray, g->nodes, &i);
+    edges = getNumberOfEdges(g, i);
   }
 
+  printf("Consulted\n");
+  printf("Treating results...\n");
   treatSearchResults(searchResult);
+  printf("Results treated\n");
 
   printSearchResults(searchResult);
 
@@ -204,6 +213,7 @@ void writeResults(SearchResult **searchResult, Consults *consults) {
   FILE *file = fopen("saida.txt", "w");
 
   for(int i = 0; i < consults->consultsSize; i++) {
+    printf("Escrevendo consulta %d\n", i+1);
     fprintf(file, "%.1f\n", ((double)searchResult[i]->searchArray[consults->consultsArray[i].center2].weight)/100);
   }
 
@@ -217,10 +227,10 @@ int main(int argc, char* argv[]) {
   }
 
   Consults *consults = (Consults*) malloc(sizeof(Consults));
-  MatrixGraph *g = readFile(strdup(argv[1]), consults);
+  Graph *g = readFile(strdup(argv[1]), consults);
 
-  printMatrixGraph(g);
-  printConsults(consults);
+  printf("Graph:\n");
+  printGraph(g);
 
   SearchResult **searchResult = (SearchResult**) malloc(sizeof(SearchResult*) * consults->consultsSize);
 
@@ -234,9 +244,11 @@ int main(int argc, char* argv[]) {
     searchResult[i] = makeConsult(g, consults->consultsArray[i]);
   }
 
+  printf("Writing results...\n");
+
   writeResults(searchResult, consults);
 
-  deleteMatrixGraph(g);
+  deleteGraph(g);
 
   deleteSearchResults(searchResult, consults->consultsSize);
 

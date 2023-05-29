@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
 typedef int Weight; // Weight pode assumir outro tipo de acordo com a necessidade
 
 typedef struct link {
@@ -21,16 +17,20 @@ typedef struct listGraph {
 	int links; // É o número de arestas, não obrigatório mas ajuda a não ter que contar caso precise
 	Node *nodeList;
 	// Link **nodeList; Esse código poderia ser usado caso não quisesse declarar uma terceira estrutura Node na implementação
-} ListGraph;
+} Graph;
 
-ListGraph *createListGraph (int nodes);
+Graph *createGraph (int nodes);
 
 Link *createEdge(int node, int weight);
 
-bool addLink(ListGraph *g, int nodeI, int nodeE, Weight weight);
+bool addLink(Graph *g, int nodeI, int nodeE, Weight weight);
 
-bool deleteLink(ListGraph *g, int nodeI, int nodeE);
+bool deleteLink(Graph *g, int nodeI, int nodeE);
 
-void printListGraph(ListGraph *g);
+void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight *weight);
 
-void deleteListGraph(ListGraph *g);
+int getNumberOfEdges(Graph *g, int nodeI);
+
+void printGraph(Graph *g);
+
+void deleteGraph(Graph *g);

@@ -1,11 +1,11 @@
 CC = gcc
 CFLAGS = -Wall -Werror
 
-SRCS_LIST = main_list.c grafo_listaadj.c
+SRCS_LIST = main.c grafo_listaadj.c
 OBJS_LIST = $(SRCS_LIST:.c=.o)
 TARGET_LIST = ep1_lista_13831982.exe
 
-SRCS_MATRIX = main_matrix.c grafo_matrizadj.c
+SRCS_MATRIX = main.c grafo_matrizadj.c
 OBJS_MATRIX = $(SRCS_MATRIX:.c=.o)
 TARGET_MATRIX = ep1_matriz_13831982.exe
 

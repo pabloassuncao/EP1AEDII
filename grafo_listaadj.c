@@ -3,12 +3,17 @@
 #include <stdbool.h>
 #include "grafo_listaadj.h"
 
-ListGraph *createListGraph (int nodes) {
+Graph *createGraph (int nodes) {
   printf("Criando grafo com %d vértices\n", nodes);
-	ListGraph *g = (ListGraph *)malloc(sizeof(ListGraph)); //aloca espaço para estrtura grafo
+	Graph *g = (Graph *)malloc(sizeof(Graph)); //aloca espaço para estrtura grafo
 	g->nodes = nodes; //atualizo o numero de vertice
 	g->links = 0;  //atualizo o numero de vertice
-	g->nodeList = (Node *)calloc((nodes), sizeof(Node)); //aloca espaço para o vetor de lista de adjacencia
+	g->nodeList = (Node *)malloc((nodes + 1) * sizeof(Node)); //aloca espaço para o vetor de lista de adjacencia
+	for(int i = 0; i <= nodes; i++) { //percorro o vetor de lista de adjacencia
+		g->nodeList[i].head = NULL; //inicializo a cabeça da lista como nulo
+		g->nodeList[i].edges = 0; //inicializo o numero de aresta como 0
+	}
+	printf("Grafo com %d vértices criado\n", nodes);
 	return(g);
 }
 
@@ -20,10 +25,10 @@ Link *createEdge(int node, int weight){
 	return(temp); //retorno endereço da adjacencia
 }
 
-bool addLink(ListGraph *g, int nodeI, int nodeE, Weight weight) {
+bool addLink(Graph *g, int nodeI, int nodeE, Weight weight) {
 	if(!g) return (false);  //validações se o grafo existe
-	if((nodeE < 0) || (nodeE >= g->nodes)) return(false); //validações se os valores não são neg
-	if((nodeI < 0) || (nodeI >= g->nodes)) return(false); //ou maiores que o numero de vértice do grafo
+	if((nodeE < 0) || (nodeE > g->nodes)) return(false); //validações se os valores não são neg
+	if((nodeI < 0) || (nodeI > g->nodes)) return(false); //ou maiores que o numero de vértice do grafo
 	
 	Link *newLink= createEdge(nodeE, weight); //crio adjacencia com o vértice final e o peso
 	//coloco a adjacencia na lista do vértice inicial
@@ -34,10 +39,10 @@ bool addLink(ListGraph *g, int nodeI, int nodeE, Weight weight) {
 	return (true);
 }
 
-bool deleteLink(ListGraph *g, int nodeI, int nodeE) {
+bool deleteLink(Graph *g, int nodeI, int nodeE) {
 	if(!g) return (false);  //validações se o grafo existe
-	if((nodeE < 0) || (nodeE >= g->nodes)) return(false); //validações se os valores não são neg
-	if((nodeI < 0) || (nodeI >= g->nodes)) return(false); //ou maiores que o numero de vértice do grafo
+	if((nodeE < 0) || (nodeE > g->nodes)) return(false); //validações se os valores não são neg
+	if((nodeI < 0) || (nodeI > g->nodes)) return(false); //ou maiores que o numero de vértice do grafo
 	
 	Link *ant;
 	Link *temp = g->nodeList[nodeI].head;
@@ -52,29 +57,59 @@ bool deleteLink(ListGraph *g, int nodeI, int nodeE) {
   return (true);
 }
 
-void printListGraph(ListGraph *g) {
+void printGraph(Graph *g) {
   if(!g) return;
-  for(int i = 0; i < g->nodes; i++) {
-    printf("%d -> [", i+1);
-    Link *temp = g->nodeList[i].head;
-    while(!!temp->next) {
-      printf("%d, ", temp->dest+1);
-      temp = temp->next;
-    }
-    printf("%d]\n", temp->dest+1);
-  }
+	printf("Printando grafo com %d vértices e %d arestas\n", g->nodes, g->links);
+	printf("Lista de adjacência:\n");
+	
+  for(int i = 0; i <= g->nodes; i++) {
+    printf("%d -> [", i);
+		if(g->nodeList[i].edges != 0) {
+			Link *temp = g->nodeList[i].head;
+			for(int j = 0; j < g->nodeList[i].edges; j++) {
+				if(j == g->nodeList[i].edges - 1) printf("%d]\n", temp->dest);
+				else printf("%d, ", temp->dest);
+				temp = temp->next;
+			}
+		} else printf("]\n");
+	}
 }
 
-void deleteListGraph(ListGraph *g) {
+void deleteGraph(Graph *g) {
 	if(!g) return;
 	for(int i = 0; i < g->nodes; i++) {
-		Link *temp = g->nodeList[i].head;
-		while(!!temp->next) {
-			Link *aux = temp;
-			temp = temp->next;
-			free(aux);
+		if(g->nodeList[i].edges != 0) {
+			Link *temp = g->nodeList[i].head;
+			while(!!temp->next) {
+				Link *aux = temp;
+				temp = temp->next;
+				free(aux);
+			}
 		}
 	}
 	free(g->nodeList);
 	free(g);
 }
+
+void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight *weight){
+	if(!g) return;
+	if((nodeI < 0) || (nodeI > g->nodes)) return;
+	if((LinkIndex < 0) || (LinkIndex > g->nodeList[nodeI].edges)) return;
+	if(g->nodeList[nodeI].edges == 0) {
+		*dest = -1;
+		*weight = -1;
+		return;
+	};
+	Link *temp = g->nodeList[nodeI].head;
+	for(int i = 0; i < LinkIndex; i++) {
+		temp = temp->next;
+	}
+	*dest = temp->dest;
+	*weight = temp->weight;
+};
+
+int getNumberOfEdges(Graph *g, int nodeI){
+	if(!g) return -1;
+	if((nodeI < 0) || (nodeI > g->nodes)) return -1;
+	return g->nodeList[nodeI].edges;
+};
