@@ -1,13 +1,23 @@
+#include <stdbool.h>
+
 typedef int Weight; // Weight pode assumir outro tipo de acordo com a necessidade
 
-typedef struct matrixGraph {
+typedef struct Graph{
 	int nodes; // É o número de vértices
 	int links; // É o número de arestas
 	Weight** nodeMat; // Caso não tenha peso na aresta será um bool
-} MatrixGraph;
+} Graph;
 
-MatrixGraph* createMatrixGraph(int nodes);
+Graph* createGraph(int nodes);
 
-void deleteMatrixGraph (MatrixGraph *g);
+void deleteGraph (Graph *g);
 
-void printMatrixGraph(MatrixGraph *g);
+bool addLink(Graph *g, int nodeI, int nodeE, Weight weight);
+
+bool deleteLink(Graph *g, int nodeI, int nodeE);
+
+void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight *weight);
+
+int getNumberOfEdges(Graph *g, int nodeI);
+
+void printGraph(Graph *g);

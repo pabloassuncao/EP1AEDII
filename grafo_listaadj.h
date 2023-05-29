@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 typedef int Weight; // Weight pode assumir outro tipo de acordo com a necessidade
 
 typedef struct link {

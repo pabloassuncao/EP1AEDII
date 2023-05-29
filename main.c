@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-// #include "grafo_matrizadj.h"
-#include "grafo_listaadj.h"
+#include "grafo_matrizadj.h"
+// #include "grafo_listaadj.h"
 
 typedef struct {
   int center1;
