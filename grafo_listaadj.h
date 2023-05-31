@@ -23,6 +23,8 @@ typedef struct listGraph {
 
 Graph *createGraph (int nodes);
 
+Graph* clearGraph(Graph *g);
+
 Link *createEdge(int node, int weight);
 
 bool addLink(Graph *g, int nodeI, int nodeE, Weight weight);
@@ -30,6 +32,8 @@ bool addLink(Graph *g, int nodeI, int nodeE, Weight weight);
 bool deleteLink(Graph *g, int nodeI, int nodeE);
 
 void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight *weight);
+
+void getLinkWeight(Graph *g, int nodeI, int nodeE, Weight *weight);
 
 int getNumberOfEdges(Graph *g, int nodeI);
 

@@ -18,13 +18,13 @@ Graph* createGraph(int nodes) {
 	if(!g) return NULL;
 	g->nodes = nodes;
 	g->links = 0;
-	g->nodeMat = (Weight**) malloc((nodes+1) * (nodes+1) * sizeof(Weight*));
+	g->nodeMat = (Weight**) malloc((nodes+1) * sizeof(Weight*));
 	if(!g->nodeMat) {
 		free(g);
 		return NULL;
 	}
 	for(int i = 0; i <= nodes; i++) {
-		g->nodeMat[i] = (Weight*) calloc(nodes, sizeof(Weight));
+		g->nodeMat[i] = (Weight*) calloc((nodes+1), sizeof(Weight));
 		if(!g->nodeMat[i]) {
 			for(int j = 0; j < i; j++) {
 				free(g->nodeMat[j]);
@@ -54,7 +54,7 @@ bool addLink(Graph *g, int nodeI, int nodeE, Weight weight){
 	if(g->nodeMat[nodeI][nodeE] != 0) return false;
 	g->nodeMat[nodeI][nodeE] = weight;
 	g->nodeMat[nodeE][nodeI] = weight;
-	g->links++;
+	g->links += 2;
 	return (true);
 };
 
@@ -72,12 +72,25 @@ void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight 
 	if(!g) return;
 	if((nodeI < 0) || (nodeI > g->nodes)) return;
 	if(g->nodeMat[nodeI][LinkIndex] == 0) {
-		*dest = -1;
-		*weight = -1;
+		*dest = 0;
+		*weight = 0;
 		return;
 	} else {
 		*dest = LinkIndex;
 		*weight = g->nodeMat[nodeI][LinkIndex];
+		return;
+	}
+};
+
+void getLinkWeight(Graph *g, int nodeI, int nodeE, Weight *weight){
+	if(!g) return;
+	if((nodeI < 0) || (nodeI > g->nodes)) return;
+	if((nodeE < 0) || (nodeE > g->nodes)) return;
+	if(g->nodeMat[nodeI][nodeE] == 0) {
+		*weight = 0;
+		return;
+	} else {
+		*weight = g->nodeMat[nodeI][nodeE];
 		return;
 	}
 };

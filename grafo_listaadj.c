@@ -4,17 +4,34 @@
 #include "grafo_listaadj.h"
 
 Graph *createGraph (int nodes) {
-  printf("Criando grafo com %d vértices\n", nodes);
 	Graph *g = (Graph *)malloc(sizeof(Graph)); //aloca espaço para estrtura grafo
 	g->nodes = nodes; //atualizo o numero de vertice
 	g->links = 0;  //atualizo o numero de vertice
 	g->nodeList = (Node *)malloc((nodes + 1) * sizeof(Node)); //aloca espaço para o vetor de lista de adjacencia
+  printf("Criando grafo com %d vértices\n", nodes);
 	for(int i = 0; i <= nodes; i++) { //percorro o vetor de lista de adjacencia
 		g->nodeList[i].head = NULL; //inicializo a cabeça da lista como nulo
 		g->nodeList[i].edges = 0; //inicializo o numero de aresta como 0
 	}
 	printf("Grafo com %d vértices criado\n", nodes);
 	return(g);
+}
+
+Graph* clearGraph(Graph *g) {
+	if(g) { //verifico se o grafo existe
+		for(int i = 0; i <= g->nodes; i++) { //percorro o vetor de lista de adjacencia
+			Link *current = g->nodeList[i].head; //pego a cabeça da lista
+			while(current) { //enquanto a lista não for vazia
+				Link *temp = current; //pego o endereço da cabeça da lista
+				current = current->next; //atualizo a cabeça da lista
+				free(temp); //libero o endereço da cabeça da lista
+			}
+			g->nodeList[i].head = NULL; //atualizo a cabeça da lista como nulo
+			g->nodeList[i].edges = 0; //atualizo o numero de aresta como 0
+		}
+		g->links = 0; //atualizo o numero de aresta como 0
+	}
+	return g;
 }
 
 Link *createEdge(int node, int weight){ 
@@ -31,11 +48,17 @@ bool addLink(Graph *g, int nodeI, int nodeE, Weight weight) {
 	if((nodeI < 0) || (nodeI > g->nodes)) return(false); //ou maiores que o numero de vértice do grafo
 	
 	Link *newLink= createEdge(nodeE, weight); //crio adjacencia com o vértice final e o peso
+	Link *newLink2= createEdge(nodeI, weight); //crio adjacencia com o vértice final e o peso
 	//coloco a adjacencia na lista do vértice inicial
 	newLink->next = g->nodeList[nodeI].head; //o campo prox da adjacencia vai receber a cabeça da lista
 	g->nodeList[nodeI].head = newLink; // e a cabeça da lista passa a ser o novo elemento
 	g->nodeList[nodeI].edges++; // atualizo o numero de aresta no grafo
-	g->links++; // atualizo o numero de aresta no grafo
+	//coloco a adjacencia na lista do vértice final
+	newLink2->next = g->nodeList[nodeE].head; //o campo prox da adjacencia vai receber a cabeça da lista
+	g->nodeList[nodeE].head = newLink2; // e a cabeça da lista passa a ser o novo elemento
+	g->nodeList[nodeE].edges++; // atualizo o numero de aresta no grafo
+
+	g->links += 2; // atualizo o numero de aresta no grafo
 	return (true);
 }
 
@@ -96,8 +119,8 @@ void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight 
 	if((nodeI < 0) || (nodeI > g->nodes)) return;
 	if((LinkIndex < 0) || (LinkIndex > g->nodeList[nodeI].edges)) return;
 	if(g->nodeList[nodeI].edges == 0) {
-		*dest = -1;
-		*weight = -1;
+		*dest = 0;
+		*weight = 0;
 		return;
 	};
 	Link *temp = g->nodeList[nodeI].head;
@@ -105,6 +128,21 @@ void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight 
 		temp = temp->next;
 	}
 	*dest = temp->dest;
+	*weight = temp->weight;
+};
+
+void getLinkWeight(Graph *g, int nodeI, int nodeE, Weight *weight){
+	if(!g) return;
+	if((nodeI < 0) || (nodeI > g->nodes)) return;
+	if((nodeE < 0) || (nodeE > g->nodes)) return;
+	if(g->nodeList[nodeI].edges == 0) {
+		*weight = 0;
+		return;
+	};
+	Link *temp = g->nodeList[nodeI].head;
+	while(!!temp && temp->dest !=  nodeE) {
+		temp = temp->next;
+	}
 	*weight = temp->weight;
 };
 

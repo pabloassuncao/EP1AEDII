@@ -18,6 +18,8 @@ bool deleteLink(Graph *g, int nodeI, int nodeE);
 
 void getLinkDestAndWeight(Graph *g, int nodeI, int LinkIndex, int *dest, Weight *weight);
 
+void getLinkWeight(Graph *g, int nodeI, int nodeE, Weight *weight);
+
 int getNumberOfEdges(Graph *g, int nodeI);
 
 void printGraph(Graph *g);

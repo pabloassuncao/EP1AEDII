@@ -250,33 +250,68 @@ Graph* kruskalMaxSpanningTree(Graph* graph) {
   return maxSpanningTree;
 }
 
-void dfsDistance(Graph* graph, int src, int dest, int* visited, Weight distance, Weight* result) {
-    visited[src] = 1;
-    
-    if (src == dest) {
-        *result = distance;
-        return;
+int findMinCostEdge(Graph* graph, int source, int destination) {
+    bool* visited = (bool*)malloc(graph->nodes+1 * sizeof(bool));
+    int* minCost = (int*)malloc(graph->nodes+1 * sizeof(int));
+    int* parent = (int*)malloc(graph->nodes+1 * sizeof(int));
+
+    // Inicializa os arrays visited, minCost e parent
+    for (int i = 0; i <= graph->nodes; i++) {
+        visited[i] = false;
+        minCost[i] = INT_MAX;
+        parent[i] = -1;
     }
-    
+
+    // Define o custo do vértice de origem como 0
+    minCost[source] = 0;
+
+    // Loop para encontrar o caminho de menor custo
+    for (int count = 0; count <= graph->nodes - 1; count++) {
+        int minCostVertex = -1;
+        int minCostValue = INT_MAX;
+
+        // Encontra o vértice não visitado com o menor custo
+        for (int v = 0; v <= graph->nodes; v++) {
+            if (!visited[v] && minCost[v] < minCostValue) {
+                minCostVertex = v;
+                minCostValue = minCost[v];
+            }
+        }
+
+        // Marca o vértice encontrado como visitado
+        visited[minCostVertex] = true;
+
+        int linkWeight;
+
+        // Atualiza os custos dos vértices adjacentes
+        for (int v = 0; v <= graph->nodes; v++) {
+            getLinkWeight(graph, minCostVertex, v, &linkWeight);
+            if (!visited[v] && linkWeight != 0 && linkWeight < minCost[v]) {
+                minCost[v] = linkWeight;
+                parent[v] = minCostVertex;
+            }
+        }
+    }
+
+    // Encontra a aresta de menor custo entre os vértices source e destination
+    int minCostEdge = INT_MAX;
+    int currentVertex = destination;
     int linkWeight;
 
-    for (int i = 0; i <= graph->nodes; i++) {
-      getLinkWeight(graph, src, i, &linkWeight);
-      if (linkWeight != 0 && visited[i] == 0) {
-          dfsDistance(graph, i, dest, visited, distance + linkWeight, result);
-      }
+    while (parent[currentVertex] != -1) {
+        int prevVertex = parent[currentVertex];
+        getLinkWeight(graph, prevVertex, currentVertex, &linkWeight);
+        if (linkWeight < minCostEdge) {
+            minCostEdge = linkWeight;
+        }
+        currentVertex = prevVertex;
     }
-}
 
-Weight findDistance(Graph* graph, int src, int dest) {
-    int* visited = (int*)malloc(graph->nodes* sizeof(int));
-    Weight result = 0;
-    
-    dfsDistance(graph, src, dest, visited, 0, &result);
-    
     free(visited);
-    
-    return result;
+    free(minCost);
+    free(parent);
+
+    return minCostEdge;
 }
 
 int main(int argc, char* argv[]) {
@@ -299,7 +334,7 @@ int main(int argc, char* argv[]) {
   printf("Calculating consults...\n");
   for(int i = 0; i < consults->consultsSize; i++) {
     printf("Calculating consult %d\n", i+1);
-    consults->consultsArray[i].weight = findDistance(g, consults->consultsArray[i].center1, consults->consultsArray[i].center2);
+    consults->consultsArray[i].weight = findMinCostEdge(g, consults->consultsArray[i].center1, consults->consultsArray[i].center2);
   }
 
   printf("Consults calculated\n");
